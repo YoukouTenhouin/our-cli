@@ -1,3 +1,4 @@
+use crate::helpers::cli::*;
 use crate::helpers::sudo;
 use crate::{Error, Result};
 
@@ -13,18 +14,19 @@ pub struct BuildOptions {
     pub platform: String,
 }
 
-fn run_build<P: AsRef<Path>>(spec: P, build_root: P) -> Result<()> {
-    let status = sudo("/usr/bin/build")
-        .arg("--no-checks")
+fn run_build_cmd<P: AsRef<Path>>(spec: P, build_root: P) -> Result<()> {
+    let mut cmd = sudo("/usr/bin/build");
+    cmd.arg("--no-checks")
         .arg("--root")
         .arg(build_root.as_ref())
-        .arg(spec.as_ref())
-        .status()?;
+        .arg(spec.as_ref());
+    info!("{} {:?}", "EXEC".bold(), cmd);
+    let status = cmd.status()?;
     if status.success() {
         Ok(())
     } else {
         let code = status.code().unwrap();
-        Err(Error::other(format!("Build process failed with {code}")))
+        Err(Error::other(format!("build command exited with {code}")))
     }
 }
 
@@ -64,16 +66,32 @@ fn copy_result_rpms<P: AsRef<Path>, S: AsRef<OsStr>>(
     fs::create_dir_all(&dst_path)?;
 
     let mut ret: Vec<PathBuf> = Vec::new();
-    for rpm in results {
-        let mut dst = dst_path.as_ref().to_path_buf();
-        dst.push(rpm.file_name().unwrap());
-        fs::copy(rpm, &dst)?;
+    for src in results {
+        let dst = src.join(src.file_name().unwrap());
+        info!(
+            "{}: {} {} {}",
+            "COPY".bold(),
+            src.display(),
+            "=>".bold(),
+            dst.display()
+        );
+        fs::copy(src, &dst)?;
         ret.push(dst);
     }
     Ok(ret)
 }
 
-pub fn build(opts: &BuildOptions) -> Result<Vec<PathBuf>> {
-    run_build(&opts.spec, &opts.build_root)?;
+fn do_build(opts: &BuildOptions) -> Result<Vec<PathBuf>> {
+    info!(
+        "{} {}",
+        "Building".bold(),
+        opts.spec.file_name().unwrap().to_string_lossy()
+    );
+    run_build_cmd(&opts.spec, &opts.build_root)?;
+    info!("Copying build result");
     copy_result_rpms(&opts.build_root, &opts.rpm_dir, &opts.platform)
+}
+
+pub fn build(opts: &BuildOptions) -> Result<Vec<PathBuf>> {
+    do_build(opts).inspect_err(|err| err!("{} {}", "Build failed:".bold(), err))
 }
