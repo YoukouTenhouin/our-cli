@@ -18,6 +18,7 @@ fn config_file_base_name() -> Option<PathBuf> {
 pub(crate) struct AppConfig {
     build_root: Option<PathBuf>,
     rpm_dir: Option<PathBuf>,
+    osc_service_root: Option<PathBuf>,
 }
 
 impl AppConfig {
@@ -58,5 +59,11 @@ impl AppConfig {
                 })
             })
             .expect("rpm directory not set, and unable to determine automatically")
+    }
+
+    pub(crate) fn obs_service_root(&self) -> PathBuf {
+        self.osc_service_root
+            .clone()
+            .unwrap_or_else(|| PathBuf::from("/usr/lib/obs/service"))
     }
 }

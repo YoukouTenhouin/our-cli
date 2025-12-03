@@ -1,6 +1,6 @@
 [package]
 name = "our"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 
 [dependencies]
@@ -8,3 +8,5 @@ clap = { version = "4.5.53", features = ["derive"] }
 colored = "3.0.0"
 config = { version = "0.15.19", features = ["toml"] }
 serde = { version = "1.0.228", features = ["derive"] }
+serde-xml-rs = "0.8.2"
+tempfile = "3.23.0"

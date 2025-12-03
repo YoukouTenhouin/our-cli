@@ -1,4 +1,5 @@
 mod build;
+mod prepare;
 
 use crate::Result;
 
@@ -15,6 +16,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Build(build::CmdArgs),
+    Prepare,
 }
 
 pub(crate) fn run() -> Result<()> {
@@ -22,5 +24,6 @@ pub(crate) fn run() -> Result<()> {
 
     match &cli.command {
         Commands::Build(args) => build::run(&args),
+        Commands::Prepare => prepare::run(),
     }
 }

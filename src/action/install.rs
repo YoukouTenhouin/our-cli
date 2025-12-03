@@ -1,5 +1,5 @@
+use crate::Result;
 use crate::helpers::sudo;
-use crate::{Error, Result};
 
 use std::path::Path;
 
@@ -17,6 +17,8 @@ where
         Ok(())
     } else {
         let code = status.code().unwrap();
-        Err(Error::other(format!("zypper exited with status {code}")))
+        Err(Box::new(std::io::Error::other(format!(
+            "zypper exited with status {code}"
+        ))))
     }
 }

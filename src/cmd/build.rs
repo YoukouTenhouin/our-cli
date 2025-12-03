@@ -23,6 +23,8 @@ pub(crate) fn run(args: &CmdArgs) -> Result<()> {
         platform: "x86_64".to_string(), // XXX hardcoded
     };
 
+    action::prepare(pwd)?;
+
     let rpms = action::build(&opts)?;
 
     action::install(rpms)

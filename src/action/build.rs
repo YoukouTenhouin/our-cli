@@ -1,6 +1,6 @@
+use crate::Result;
 use crate::helpers::cli::*;
 use crate::helpers::sudo;
-use crate::{Error, Result};
 
 use std::ffi::OsStr;
 use std::fs;
@@ -26,7 +26,9 @@ fn run_build_cmd<P: AsRef<Path>>(spec: P, build_root: P) -> Result<()> {
         Ok(())
     } else {
         let code = status.code().unwrap();
-        Err(Error::other(format!("build command exited with {code}")))
+        Err(Box::new(std::io::Error::other(format!(
+            "build command exited with {code}"
+        ))))
     }
 }
 
@@ -67,7 +69,7 @@ fn copy_result_rpms<P: AsRef<Path>, S: AsRef<OsStr>>(
 
     let mut ret: Vec<PathBuf> = Vec::new();
     for src in results {
-        let dst = src.join(src.file_name().unwrap());
+        let dst = dst_path.as_ref().join(src.file_name().unwrap());
         info!(
             "{}: {} {} {}",
             "COPY".bold(),
