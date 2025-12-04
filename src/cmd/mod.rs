@@ -1,7 +1,7 @@
 mod build;
 mod prepare;
 
-use crate::Result;
+use crate::helpers::cli::*;
 
 use clap::{Parser, Subcommand};
 
@@ -19,11 +19,16 @@ enum Commands {
     Prepare,
 }
 
-pub(crate) fn run() -> Result<()> {
+pub(crate) fn run() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Build(args) => build::run(&args),
-        Commands::Prepare => prepare::run(),
-    }
+    let (cmd, ret) = match &cli.command {
+        Commands::Build(args) => ("build", build::run(&args)),
+        Commands::Prepare => ("prepare", prepare::run()),
+    };
+
+    ret.unwrap_or_else(|e| {
+	err!("{} {} {} {}", "Command".bold(), cmd, "failed with: ".bold(), e);
+	std::process::exit(1)
+    });
 }
